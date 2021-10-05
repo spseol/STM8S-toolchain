@@ -1,0 +1,9 @@
+#!/bin/zsh
+
+
+sdccrm $(cat exclude_reference) -r $@
+
+for soubor in $@; do 
+    sdasstm8 -plosgff $soubor; 
+done
+
