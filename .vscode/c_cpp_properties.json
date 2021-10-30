@@ -16,7 +16,7 @@
                 "${workspaceFolder}/SPL/inc/"
             ],
             "defines": [
-                "STM8S",
+                "STM8S208",
                 "_SDCC_"
             ],
             "compilerPath": "/usr/bin/sdcc",
@@ -30,7 +30,8 @@
                 "-mstm8",
                 "-lstm8",
                 "--std-sdcc99"
-            ]
+            ],
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],
     "version": 4

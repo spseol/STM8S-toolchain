@@ -16,7 +16,7 @@
 
 #define BTN_PORT GPIOE
 #define BTN_PIN  GPIO_PIN_4
-#define BTN_PUSH (GPIO_ReadInputPin(BTN_PORT, BTN_PIN)==RESET) 
+#define BTN_PUSH (GPIO_ReadInputPin(BTN_PORT, BTN_PIN)==RESET)
 
 
 void init(void)
@@ -24,8 +24,13 @@ void init(void)
     CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);      // taktovani MCU na 16MHz
     GPIO_Init(LED_PORT, LED_PIN, GPIO_MODE_OUT_PP_LOW_SLOW);
     init_milis();
+
 }
 
+/*int8_t abc(void) {*/
+/*    static int8_t x = 55;*/
+/*    return x+154;*/
+/*}*/
 
 int main(void)
 {
@@ -35,10 +40,19 @@ int main(void)
 
     while (1) {
 
-        if (milis() - time > 333 && BTN_PUSH) {
             GPIO_WriteReverse(GPIOC, LED_PIN);
-            time = milis();
-        }
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+            GPIO_WriteReverse(GPIOC, LED_PIN);
+        
 
         /*LED_FLIP; */
         /*_delay_ms(333);*/

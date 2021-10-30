@@ -35,7 +35,7 @@ CFLAGS += -D F_CPU=$(F_CPU)
 CFLAGS += --debug
 
 LD = stm8-ld
-LD_FLAGS = -T./elf32stm8s003f3.x --print-memory-usage --gc-sections -Map $(OUTPUT_DIR)/map_$(DEVICE).map
+LD_FLAGS = -T.make/elf32stm8s003f3.x --print-memory-usage --gc-sections -Map $(OUTPUT_DIR)/map_$(DEVICE).map
 LIB_DIRS = $(addprefix -L, /usr/local/share/sdcc/lib/stm8)
 
 AS = stm8-as

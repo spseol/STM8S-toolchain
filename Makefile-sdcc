@@ -18,7 +18,7 @@ DEVICE_FLASH=stm8s208rb
 F_CPU=16000000
 
 # trap handling requires SDCC >=v3.4.3
-SKIP_TRAPS = 0
+SKIP_TRAPS = 1
 
 # set compiler path & parameters 
 CC_ROOT =

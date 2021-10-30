@@ -13,10 +13,16 @@
 #######
 
 # STM8 device (default is STM8 discovery board)
+DEVICE=STM8S103
+DEVICE=STM8S105
 DEVICE=STM8S208
+DEVICE_FLASH=stm8s103f3
+DEVICE_FLASH=stm8s105k4
 DEVICE_FLASH=stm8s208rb
 F_CPU=16000000
 
+STLINK=stlinkv2
+STLINK=stlinkv21
 # trap handling requires SDCC >=v3.4.3
 SKIP_TRAPS = 0
 
@@ -28,15 +34,15 @@ CFLAGS  = -mstm8 -lstm8 --opt-code-size --std-sdcc99 --nogcse --all-callee-saves
 CFLAGS += -I inc
 CFLAGS += -D F_CPU=$(F_CPU)
 
-#CFLAGS += --debug
+CFLAGS += --debug
 #CFLAGS += --out-fmt-elf 
 
 # required for some examples for STM8S EVAL board
 #CFLAGS += -DUSE_STM8_128_EVAL
 
 # set output folder and target name
-OUTPUT_DIR = ./$(DEVICE)
-OUTPUT_DIR = ./build
+#OUTPUT_DIR = ./$(DEVICE)
+OUTPUT_DIR = ./build-$(DEVICE)
 ELF        = $(OUTPUT_DIR)/out.elf
 TARGET     = $(OUTPUT_DIR)/out.hex
 
@@ -53,10 +59,10 @@ PRJ_ASSRM := $(addprefix $(OUTPUT_DIR)/, $(PRJ_SOURCE:.c=.asmrm))
 # set SPL paths
 #SPL_SRC_DIR = /usr/local/lib/stm8/src/
 #SPL_INC_DIR = /usr/local/lib/stm8/inc/
-SPL_SRC_DIR = ../SPL/src/
-SPL_INC_DIR = ../SPL/inc/
-#SPL_SRC_DIR = ../SPL-$(DEVICE)/src/
-#SPL_INC_DIR = ../SPL-$(DEVICE)/inc/
+#SPL_SRC_DIR = ../SPL/src/
+#SPL_INC_DIR = ../SPL/inc/
+SPL_SRC_DIR = ../SPL-$(DEVICE)/src/
+SPL_INC_DIR = ../SPL-$(DEVICE)/inc/
 # add all library sources used here singly ... or all .c files in SPL src dir
 SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c 
 #SPL_SOURCE += stm8s_uart1.c
@@ -85,25 +91,26 @@ elf: $(ELF)
 #$(OUTPUT_DIR)/%.asm: %.c
 #    $(CC) $(CFLAGS) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $?
 
-$(OUTPUT_DIR)/%.asm: %.c
+$(OUTPUT_DIR)/%.asm: %.c  
+	@mkdir -p $(OUTPUT_DIR)
 	$(CC) -S $(CFLAGS) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $? -o $@
 
 #$(OUTPUT_DIR)/%.rel: $(OUTPUT_DIR)/%.asm
 #    sdasstm8 -plosgff $?
 
-$(ELF): $(PRJ_OBJECTS) $(SPL_OBJECTS)
-	$(CC) $(CFLAGS) --out-fmt-elf -o $(ELF) $^
+$(ELF): $(TARGET)
+	$(CC) $(CFLAGS) --out-fmt-elf -o $(ELF) $(PRJ_OBJECTS) $(SPL_OBJECTS)
 
 
 $(TARGET): $(PRJ_ASSMS) $(SPL_ASSMS)
-	./asm2obj $^	
+	.make/asm2obj $^	
 	$(CC) $(CFLAGS) -o $(TARGET) $(PRJ_OBJECTS) $(SPL_OBJECTS)
 
 flash: $(TARGET)
-	stm8flash -c stlinkv21 -p $(DEVICE_FLASH) -s flash -w $(TARGET)
+	stm8flash -c $(STLINK) -p $(DEVICE_FLASH) -s flash -w $(TARGET)
 
 clean:
-	rm $(OUTPUT_DIR)/*
+	rm -rf $(OUTPUT_DIR)
 
 switch-sdcc-gas:
 	ln -sf Makefile-sdcc-gas Makefile

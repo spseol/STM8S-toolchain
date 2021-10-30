@@ -9,7 +9,7 @@
             "name": "STM8-gdb",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build/out.elf",
+            "program": "${workspaceRoot}/build-STM8S208/out.elf",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceRoot}",
