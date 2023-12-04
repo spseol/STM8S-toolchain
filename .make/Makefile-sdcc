@@ -157,9 +157,9 @@ clean: half-clean
 
 flash: $(TARGET).elf
 ifeq ($(OS),Windows_NT)
-	+$(STVP) -BoardName=ST-LINK -Device=$(DEVICE_FLASH_STVP) -Port=USB -ProgMode=SWIM -no_loop -no_log -FileProg=$(TARGET).ihx
+	+$(STVP) -BoardName=ST-LINK -Device=$(DEVICE_FLASH_STVP) -Port=USB -ProgMode=SWIM -no_loop -no_log -FileProg=$(TARGET).elf
 else
-	+$(OPENOCD) -c "init" -c "program_device $(TARGET).ihx 0"
+	+$(OPENOCD) -c "init" -c "program_device $(TARGET).ihx 0"  # BUG
 endif
 
 flash2: out.ihx
