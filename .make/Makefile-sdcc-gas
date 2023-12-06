@@ -88,7 +88,7 @@ LIB_DIRS = $(addprefix -L, $(CC_ROOT)/share/sdcc/lib/stm8)
 
 # set output folder and target name
 OUTPUT_DIR = ./build-$(DEVICE)
-TARGET     = $(OUTPUT_DIR)/out-$(DEVICE)
+TARGET     = $(OUTPUT_DIR)/out
 
 # set project folder and files (all *.c)
 PRJ_ROOT    = .
