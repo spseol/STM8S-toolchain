@@ -28,7 +28,7 @@ int main(void)
     setup();
 
     while (1) {
-#if defined (BTN_PORT) || defined (BTN_PIN)
+#if defined (BTN_PORT) && defined (BTN_PIN)
         if (milis() - time > 333 && !PUSH(BTN)) {
 #else
         if (milis() - time > 333 ) {
@@ -37,10 +37,7 @@ int main(void)
             time = milis();
             //printf("%ld\n", time);
         }
-
-        //LED_REVERSE; 
         //delay_ms(333);
-        //printf("Funguje to!!!\n");
     }
 }
 

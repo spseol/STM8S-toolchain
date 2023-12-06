@@ -5,7 +5,7 @@
 #define HIGH(BAGR) GPIO_WriteHigh(BAGR##_PORT, BAGR##_PIN)
 #define REVERSE(BAGR) GPIO_WriteReverse(BAGR##_PORT, BAGR##_PIN)
 
-#define READ(BAGR) GPIO_ReadInputPin(BAGR##_PORT, BAGR##_PIN) 
+#define READ(BAGR) (GPIO_ReadInputPin(BAGR##_PORT, BAGR##_PIN)!=RESET) 
 #define PUSH(BAGR) (GPIO_ReadInputPin(BAGR##_PORT, BAGR##_PIN)==RESET) 
 
 #ifdef STM8S003
