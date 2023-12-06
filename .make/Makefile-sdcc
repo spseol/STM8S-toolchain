@@ -27,7 +27,7 @@ ifeq ($(OS),Windows_NT)
 else
 	#CC_ROOT = /usr
 	#CC_ROOT = /usr/local
-	CC_ROOT = /usr/local/stow/sdcc-4.2.0
+	CC_ROOT = /usr/local/stow/sdcc-4.1.0
 endif
 ######################################################################################
 CC = $(CC_ROOT)/bin/sdcc
@@ -73,7 +73,7 @@ endif
 SKIP_TRAPS = 1
 
 # set compiler path & parameters 
-CFLAGS  = -mstm8 -lstm8 --opt-code-size 
+#CFLAGS  = -mstm8 -lstm8 --opt-code-size 
 CFLAGS  = -mstm8 -lstm8 --opt-code-size --std-sdcc99 --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
 CFLAGS += -I inc
 CFLAGS += -D F_CPU=$(F_CPU)
@@ -88,7 +88,9 @@ endif
 
 # set output folder and target name
 OUTPUT_DIR = ./build-$(DEVICE)
-TARGET     = $(OUTPUT_DIR)/out
+OUTPUT_DIR_ELF = ./build-$(DEVICE)-elf
+TARGET     = $(OUTPUT_DIR)/out.ihx
+TARGET_ELF     = $(OUTPUT_DIR_ELF)/out.elf
 
 # set project folder and files (all *.c)
 PRJ_ROOT    = .
@@ -97,6 +99,7 @@ PRJ_INC_DIR = $(PRJ_ROOT)/inc
 # all project sources included by default
 PRJ_SOURCE  = $(notdir $(wildcard $(PRJ_SRC_DIR)/*.c))
 PRJ_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(PRJ_SOURCE:.c=.rel))
+PRJ_OBJECTS_ELF := $(addprefix $(OUTPUT_DIR_ELF)/, $(PRJ_SOURCE:.c=.rel))
 PRJ_INCS  = $(wildcard $(PRJ_INC_DIR)/*.h)
 
 # set SPL paths
@@ -116,6 +119,7 @@ SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c
 #SPL_SOURCE += stm8s_tim3.c
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
 SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.rel))
+SPL_OBJECTS_ELF := $(addprefix $(OUTPUT_DIR_ELF)/, $(SPL_SOURCE:.c=.rel))
 
 # collect all include folders
 INCLUDE = -I$(PRJ_INC_DIR) -I$(SPL_INC_DIR) 
@@ -124,45 +128,54 @@ INCLUDE = -I$(PRJ_INC_DIR) -I$(SPL_INC_DIR)
 VPATH=$(PRJ_SRC_DIR):$(SPL_SRC_DIR)
 
 
-elf:: $(TARGET).elf
-ihx:: out.ihx
-out.ihx::
-	$(MAKE) half-clean
-	IHEX_NODEBUG=1 $(MAKE) $(TARGET).ihx
-	$(MAKE) half-clean
+ihx:: $(TARGET)
+elf:: $(TARGET_ELF)
+all: ihx elf
 
+$(TARGET_ELF): $(PRJ_OBJECTS_ELF) $(SPL_OBJECTS_ELF)
+	$(CC) $(CFLAGS) $(FMT_ELF) -o $(TARGET_ELF) $^
+	$(LN) $@ ./out.elf || $(CP) $@ ./out.elf
 
-$(TARGET).elf: $(PRJ_OBJECTS) $(SPL_OBJECTS)
-	$(CC) $(CFLAGS) $(FMT_ELF) -o $(TARGET).elf $^
-	$(CP) $@ ./out.elf
-
-$(TARGET).ihx: $(PRJ_OBJECTS) $(SPL_OBJECTS)
-	$(CC) $(CFLAGS) -o $(TARGET).ihx $^
-	$(CP) $@ ./out.ihx
+$(TARGET): $(PRJ_OBJECTS) $(SPL_OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET) $^
+	$(LN) $@ ./out.ihx || $(CP) $@ ./out.ihx
 	@echo
 	@$(PYTHON) .make/sizecal.py ./out.ihx
 	@echo
 
 $(OUTPUT_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR)
+	$(CC) $(CFLAGS) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
+
+$(OUTPUT_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR_ELF)
 	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
 
 $(OUTPUT_DIR):
 	$(MKDIR) -p $(OUTPUT_DIR)
+$(OUTPUT_DIR_ELF):
+	$(MKDIR) -p $(OUTPUT_DIR_ELF)
 
-half-clean::
-	rm -Rf $(OUTPUT_DIR)
-clean: half-clean
+
+clean:
 	rm -f ./out.ihx
 	rm -f ./out.elf
+	rm -f out-$(DEVICE).ihex
+	rm -Rf $(OUTPUT_DIR)
+	rm -Rf $(OUTPUT_DIR_ELF)
 
-flash: $(TARGET).elf
+flash: $(TARGET)
 ifeq ($(OS),Windows_NT)
-	+$(STVP) -BoardName=ST-LINK -Device=$(DEVICE_FLASH_STVP) -Port=USB -ProgMode=SWIM -no_loop -no_log -FileProg=$(TARGET).elf
+	+$(STVP) -BoardName=ST-LINK -Device=$(DEVICE_FLASH_STVP) -Port=USB -ProgMode=SWIM -no_loop -no_log -FileProg=$(TARGET)
 else
-	+$(OPENOCD) -c "init" -c "program_device $(TARGET).ihx 0"  # BUG
+	+$(OPENOCD) -c "init" -c "program_device $(TARGET) 0"  # BUG
 endif
 
-flash2: out.ihx
+flash-elf: $(TARGET_ELF)
+	+$(OPENOCD) -c "init" -c "program_device $(TARGET_ELF) 0"  # BUG
+flash-ihex: $(TARGET_ELF)
+	stm8-objcopy -O ihex $(TARGET_ELF) out-$(DEVICE).ihex
+	+$(OPENOCD) -c "init" -c "program_device out-$(DEVICE).ihex 0"  # BUG
+
+stm8flash: $(TARGET)
 	+stm8flash -c $(STLINK) -p $(DEVICE_FLASH) -s flash -w out.ihx
 
 rebuild::
@@ -176,7 +189,7 @@ reflash::
 openocd::
 	$(OPENOCD) -c "init" -c "reset halt"
 
-debug: $(TARGET).elf
+debug: $(TARGET_ELF)
 	stm8-gdb --tui $^
 
 
