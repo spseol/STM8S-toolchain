@@ -144,11 +144,11 @@ all:: $(TARGET).ihx
 
 $(TARGET).elf: $(PRJ_OBJECTS) $(SPL_OBJECTS) sdcc.lib
 	$(LD) $^ -o $@ $(LD_FLAGS) $(LIBS)
-	$(LN) $@ ./out.elf
+	$(LN) $@ ./out.elf || $(LN) $@ ./out.elf
 
 $(TARGET).ihx: $(TARGET).elf
 	stm8-objcopy -O ihex $(TARGET).elf $(TARGET).ihx
-	$(LN) $@ ./out.ihx
+	$(LN) $@ ./out.ihx || $(LN) $@ ./out.ihx
 	@echo MemSize: 
 	@$(PYTHON) .make/sizecal.py ./out.ihx
 	@echo
