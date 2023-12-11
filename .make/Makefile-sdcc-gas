@@ -204,7 +204,9 @@ switch-sdccrm:
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
 spl::
-	bash .make/spl.sh
+	+bash .make/spl.sh
+tree::
+	+bash .make/tree.sh
 
 .PHONY: clean debug
 

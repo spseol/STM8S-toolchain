@@ -6,7 +6,7 @@
 //#include <stdio.h>
 //#include "uart1.h"
 
-void setup(void)
+void init(void)
 {
     CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);      // taktovani MCU na 16MHz
 
@@ -25,7 +25,7 @@ int main(void)
   
     uint32_t time = 0;
 
-    setup();
+    init();
 
     while (1) {
 #if defined (BTN_PORT) && defined (BTN_PIN)

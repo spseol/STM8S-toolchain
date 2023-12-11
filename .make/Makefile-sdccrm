@@ -173,6 +173,8 @@ switch-sdcc-gas::
 	$(LN) .make/Makefile-sdcc-gas Makefile || $(CP) .make/Makefile-sdcc-gas Makefile
 
 spl::
-	bash .make/spl.sh
+	+bash .make/spl.sh
+tree::
+	+bash .make/tree.sh
 
 .PHONY: clean

@@ -46,12 +46,12 @@
 #define S3_PIN GPIO_PIN_4
 
 // RGB LED
-#define PWMB_PORT GPIOD
-#define PWMB_PIN  GPIO_PIN_4
-#define PWMG_PORT GPIOD
-#define PWMG_PIN  GPIO_PIN_3
-#define PWMR_PORT GPIOA
-#define PWMR_PIN  GPIO_PIN_3
+#define PWM_B_PORT GPIOD
+#define PWM_B_PIN  GPIO_PIN_4
+#define PWM_G_PORT GPIOD
+#define PWM_G_PIN  GPIO_PIN_3
+#define PWM_R_PORT GPIOA
+#define PWM_R_PIN  GPIO_PIN_3
 
 // ADC
 #define VREF_PORT GPIOF
