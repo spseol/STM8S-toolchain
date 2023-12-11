@@ -102,25 +102,27 @@ PRJ_INCS  = $(wildcard $(PRJ_INC_DIR)/*.h)
 # set SPL paths
 #SPL_SRC_DIR = /usr/local/lib/stm8/src/
 #SPL_INC_DIR = /usr/local/lib/stm8/inc/
-#SPL_SRC_DIR = ../SPL/src/
-#SPL_INC_DIR = ../SPL/inc/
-SPL_SRC_DIR = ../SPL-$(DEVICE)/src/
-SPL_INC_DIR = ../SPL-$(DEVICE)/inc/
+SPL_SRC_DIR = ../SPL/src/
+SPL_INC_DIR = ../SPL/inc/
+#SPL_SRC_DIR = ../SPL-$(DEVICE)/src/
+#SPL_INC_DIR = ../SPL-$(DEVICE)/inc/
 # add all library sources used here singly ... or all .c files in SPL src dir
 #SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c 
 #SPL_SOURCE += stm8s_uart1.c
-SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
+#SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
+include ../SPLSPL/mk/$(DEVICE).mk
+SPL_SOURCE = $(foreach prefix, $(SPL_SOURCE_PREFIX), $(notdir $(wildcard $(SPL_SRC_DIR)/$(prefix)*.c)))
 SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.o))
 
 SDCC_LIB_SRC_DIR = $(CC_ROOT)/share/sdcc/lib/src/
 ### buď se knihovní funkce vyberou přes hvězdičku
-#SDCC_LIB_SOURCE  = $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_mul*.c))
-#SDCC_LIB_SOURCE += $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_div*.c))
-#SDCC_LIB_SOURCE += $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_mod*.c))
+SDCC_LIB_SOURCE  = $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_mul*.c))
+SDCC_LIB_SOURCE += $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_div*.c))
+SDCC_LIB_SOURCE += $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_mod*.c))
 ### nebo se knihovní funkce vyberou jednotlivě
-SDCC_LIB_SOURCE +=  _modulong.c _mullong.c _divulong.c _mulint.c _modsint.c
-SDCC_LIB_SOURCE += printf_large.c _strlen.c sprintf.c vprintf.c puts.c
+#SDCC_LIB_SOURCE +=  _modulong.c _mullong.c _divulong.c _mulint.c _modsint.c
 #SDCC_LIB_SOURCE  = $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_*.c)) # toto nefunguje dobře
+SDCC_LIB_SOURCE += printf_large.c _strlen.c sprintf.c vprintf.c puts.c
 SDCC_LIB_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SDCC_LIB_SOURCE:.c=.o))
 
 # collect all include folders
@@ -140,7 +142,7 @@ ihx:: $(TARGET).ihx
 elf:: $(TARGET).elf
 all:: $(TARGET).ihx
 
-$(TARGET).elf: $(PRJ_OBJECTS) $(SPL_OBJECTS) $(SDCC_LIB_OBJECTS)
+$(TARGET).elf: $(PRJ_OBJECTS) $(SPL_OBJECTS) sdcc.lib
 	$(LD) $^ -o $@ $(LD_FLAGS) $(LIBS)
 	$(LN) $@ ./out.elf
 
@@ -161,10 +163,15 @@ $(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
 $(OUTPUT_DIR):
 	$(MKDIR) -p $(OUTPUT_DIR)
 
+sdcc.lib: $(SDCC_LIB_OBJECTS)
+	stm8-ar -rc sdcc.lib $^
+
 clean::
 	rm -f ./out.ihx
 	rm -f ./out.elf
 	rm -rf $(OUTPUT_DIR)
+cleanall:clean
+	rm -f ./sdcc.lib
 
 flash: $(TARGET).ihx
 ifeq ($(OS),Windows_NT)
@@ -186,10 +193,10 @@ reflash::
 	$(MAKE) flash
 
 openocd::
-	$(OPENOCD) -c "init" -c "reset halt"
+	+$(OPENOCD) -c "init" -c "reset halt"
 
 debug: $(TARGET).elf
-	stm8-gdb --tui $^
+	+stm8-gdb --tui $^
 
 switch-sdcc::
 	$(LN) .make/Makefile-sdcc Makefile || $(CP) .make/Makefile-sdcc Makefile

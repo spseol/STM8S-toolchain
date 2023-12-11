@@ -31,6 +31,7 @@ else
 endif
 ######################################################################################
 CC = $(CC_ROOT)/bin/sdcc
+AR = $(CC_ROOT)/bin/sdar
 
 #DEVICE=STM8S103
 DEVICE=$(shell bash .make/device $(DEVICE_FLASH))
@@ -91,6 +92,8 @@ OUTPUT_DIR = ./build-$(DEVICE)
 OUTPUT_DIR_ELF = ./build-$(DEVICE)-elf
 TARGET     = $(OUTPUT_DIR)/out.ihx
 TARGET_ELF     = $(OUTPUT_DIR_ELF)/out.elf
+SPLLIB = $(OUTPUT_DIR)/spl.lib
+SPLLIB_ELF = $(OUTPUT_DIR_ELF)/spl.lib
 
 # set project folder and files (all *.c)
 PRJ_ROOT    = .
@@ -103,14 +106,12 @@ PRJ_OBJECTS_ELF := $(addprefix $(OUTPUT_DIR_ELF)/, $(PRJ_SOURCE:.c=.rel))
 PRJ_INCS  = $(wildcard $(PRJ_INC_DIR)/*.h)
 
 # set SPL paths
-#SPL_SRC_DIR = /usr/local/lib/stm8/src/
-#SPL_INC_DIR = /usr/local/lib/stm8/inc/
-SPL_SRC_DIR = ../SPL/src/
-SPL_INC_DIR = ../SPL/inc/
+SPL_SRC_DIR = ../SPLSPL/src/
+SPL_INC_DIR = ../SPLSPL/inc/
 #SPL_SRC_DIR = ../SPL-$(DEVICE)/src/
 #SPL_INC_DIR = ../SPL-$(DEVICE)/inc/
 # add all library sources used here singly ... or all .c files in SPL src dir
-SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c 
+#SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c 
 #SPL_SOURCE += stm8s_uart1.c
 #SPL_SOURCE += stm8s_adc2.c
 #SPL_SOURCE += stm8s_flash.c
@@ -118,6 +119,9 @@ SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c
 #SPL_SOURCE += stm8s_tim2.c
 #SPL_SOURCE += stm8s_tim3.c
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
+include ../SPLSPL/mk/$(DEVICE).mk
+SPL_SOURCE = $(foreach prefix, $(SPL_SOURCE_PREFIX), $(notdir $(wildcard $(SPL_SRC_DIR)/$(prefix)*.c)))
+
 SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.rel))
 SPL_OBJECTS_ELF := $(addprefix $(OUTPUT_DIR_ELF)/, $(SPL_SOURCE:.c=.rel))
 
@@ -132,11 +136,11 @@ ihx:: $(TARGET)
 elf:: $(TARGET_ELF)
 all: ihx elf
 
-$(TARGET_ELF): $(PRJ_OBJECTS_ELF) $(SPL_OBJECTS_ELF)
+$(TARGET_ELF): $(SPLLIB_ELF) $(PRJ_OBJECTS_ELF)
 	$(CC) $(CFLAGS) $(FMT_ELF) -o $(TARGET_ELF) $^
 	$(LN) $@ ./out.elf || $(CP) $@ ./out.elf
 
-$(TARGET): $(PRJ_OBJECTS) $(SPL_OBJECTS)
+$(TARGET): $(SPLLIB) $(PRJ_OBJECTS) 
 	$(CC) $(CFLAGS) -o $(TARGET) $^
 	$(LN) $@ ./out.ihx || $(CP) $@ ./out.ihx
 	@echo
@@ -148,6 +152,13 @@ $(OUTPUT_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR)
 
 $(OUTPUT_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR_ELF)
 	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
+
+
+$(SPLLIB): $(SPL_OBJECTS) | $(OUTPUT_DIR)
+	$(AR) -rc $(SPLLIB) $^
+$(SPLLIB_ELF): $(SPL_OBJECTS_ELF) | $(OUTPUT_DIR_ELF)
+	$(AR) -rc $(SPLLIB_ELF) $^
+
 
 $(OUTPUT_DIR):
 	$(MKDIR) -p $(OUTPUT_DIR)
@@ -166,14 +177,17 @@ flash: $(TARGET)
 ifeq ($(OS),Windows_NT)
 	+$(STVP) -BoardName=ST-LINK -Device=$(DEVICE_FLASH_STVP) -Port=USB -ProgMode=SWIM -no_loop -no_log -FileProg=$(TARGET)
 else
-	+$(OPENOCD) -c "init" -c "program_device $(TARGET) 0"  # BUG
+	+$(OPENOCD) -c "init" -c "program_device $(TARGET) 0"
 endif
 
 flash-elf: $(TARGET_ELF)
-	+$(OPENOCD) -c "init" -c "program_device $(TARGET_ELF) 0"  # BUG
+	+$(OPENOCD) -c "init" -c "program_device $(TARGET_ELF) 0"
 flash-ihex: $(TARGET_ELF)
 	stm8-objcopy -O ihex $(TARGET_ELF) out-$(DEVICE).ihex
-	+$(OPENOCD) -c "init" -c "program_device out-$(DEVICE).ihex 0"  # BUG
+	@echo
+	@$(PYTHON) .make/sizecal.py ./out-$(DEVICE).ihex
+	@echo
+	+$(OPENOCD) -c "init" -c "program_device out-$(DEVICE).ihex 0"
 
 stm8flash: $(TARGET)
 	+stm8flash -c $(STLINK) -p $(DEVICE_FLASH) -s flash -w out.ihx
@@ -187,10 +201,10 @@ reflash::
 	$(MAKE) flash
 
 openocd::
-	$(OPENOCD) -c "init" -c "reset halt"
+	+$(OPENOCD) -c "init" -c "reset halt"
 
 debug: $(TARGET_ELF)
-	stm8-gdb --tui $^
+	+stm8-gdb --tui $^
 
 
 switch-sdcc-gas::

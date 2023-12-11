@@ -1,12 +1,12 @@
 #!/bin/bash
 
-SPLS=(SPL SPL-STM8S003 SPL-STM8S103 SPL-STM8S105 SPL-STM8S208)
+SPLS=(SPL SPLSPL)
 
 #####################################################################################
 
 any_dir_not_exists() {
     for dir in $@; do
-        if ! [ -d $dir ]; then
+        if ! [ -d ../$dir ]; then
             return 0
         fi
     done
@@ -15,20 +15,22 @@ any_dir_not_exists() {
 
 #####################################################################################
 
-cd ..
 
 if any_dir_not_exists ${SPLS[@]} ; then
 
-    curl https://mamut.spseol.cz/nozka/public/spl.tgz -O spl.tgz
+    curl https://gitlab.com/spseol/mit-no/spl/-/archive/main/spl-main.tar.gz --output spl.tgz
+    tar xzf spl.tgz
+    rm  spl.tgz
 
     for dir in ${SPLS[@]}; do
-        if ! [ -d $dir ]; then
-            echo Rozbaluju $dir
-            tar xzf spl.tgz $dir
+        if ! [ -d ../$dir ]; then
+            echo "Nahrávám $dir"
+            mv spl-main/$dir ..
         fi
     done
 
-    rm  spl.tgz
+    rm -R spl-main
+
 else
-    echo "Vše je připraveno"
+    echo "... ${SPLS[@]} již existují."
 fi
