@@ -119,7 +119,9 @@ SPL_INC_DIR = ../SPLSPL/inc/
 #SPL_SOURCE += stm8s_tim2.c
 #SPL_SOURCE += stm8s_tim3.c
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
-include ../SPLSPL/mk/$(DEVICE).mk
+ifneq ($(wildcard ../SPLSPL),)
+	include ../SPLSPL/mk/$(DEVICE).mk
+endif
 SPL_SOURCE = $(foreach prefix, $(SPL_SOURCE_PREFIX), $(notdir $(wildcard $(SPL_SRC_DIR)/$(prefix)*.c)))
 
 SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.rel))
