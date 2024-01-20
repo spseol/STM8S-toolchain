@@ -214,13 +214,13 @@ switch-sdcc-gas::
 switch-sdccrm:
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
-../spl.tgz:
-	curl https://gitlab.com/spseol/mit-no/spl/-/archive/main/spl-main.tar.gz --output ../spl.tgz
-../SPL: | ../spl.tgz
-	tar -C .. --transform='s%spl-main/%%' -xzf ../spl.tgz spl-main/SPL/
+../SPL.tgz:
+	curl https://gitlab.com/spseol/mit-no/spl/-/archive/main/spl-main.tar.gz --output ../SPL.tgz
+../SPL: | ../SPL.tgz
+	tar -C .. --transform='s%spl-main/%%' -xzf ../SPL.tgz spl-main/SPL/
 	@printf "***********************************************************\n*  SPL byla rozbalena. Možná je třeba znovu spusti make   *\n***********************************************************\n"
-../SPLSPL: | ../spl.tgz
-	tar -C .. --transform='s%spl-main/%%' -xzf ../spl.tgz spl-main/SPLSPL/
+../SPLSPL: | ../SPL.tgz
+	tar -C .. --transform='s%spl-main/%%' -xzf ../SPL.tgz spl-main/SPLSPL/
 	@printf "***********************************************************\n*  SPL byla rozbalena. Možná je třeba znovu spusti make   *\n***********************************************************\n"
 
 spl: ../SPL ../SPLSPL
