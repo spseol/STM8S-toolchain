@@ -33,10 +33,13 @@ default: sdccrm
 
 sdcc:: spl
 	$(LN) .make/Makefile-sdcc Makefile || cp .make/Makefile-sdcc Makefile
+	@echo "# znovu zavolej make"
 sdccrm:: spl
 	$(LN) .make/Makefile-sdccrm Makefile || cp .make/Makefile-sdccrm Makefile
+	@echo "# znovu zavolej make"
 sdcc-gas:: spl
 	$(LN) .make/Makefile-sdcc-gas Makefile || cp .make/Makefile-sdcc-gas Makefile
+	@echo "# znovu zavolej make"
 
 spl::
 	bash .make/spl.sh
