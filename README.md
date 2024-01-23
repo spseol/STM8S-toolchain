@@ -6,10 +6,10 @@ STM8 (SPŠE) toolchain
   s [STM8S](https://www.st.com/en/microcontrollers-microprocessors/stm8s-series.html).
 * Strom je určen pro překladač [SDCC](http://sdcc.sourceforge.net/) nebo 
   [SDCC-gas](https://github.com/XaviDCR92/sdcc-gas).
-* Standardní knihovnu pro práci s periferiemi 
+* Standardní knihovna pro práci s periferiemi 
   [SPL](https://www.st.com/content/st_com/en/products/embedded-software/mcu-mpu-embedded-software/stm8-embedded-software/stsw-stm8069.html)
-  je třeba (z licenčních důvodů) stáhnou zvlášť ze stránek výrobce a použít
-  [patch](https://github.com/gicking/STM8-SPL_SDCC_patch) (`make spl`).
+  by měla být (z licenčních důvodů) stáhnou zvlášť ze stránek výrobce a použít
+  [patch](https://github.com/gicking/STM8-SPL_SDCC_patch) -- napište `make spl`.
 * Konkurence a inspirace: \
   * <https://gitlab.com/wykys/stm8-tools>
   * <https://github.com/matejkrenek/stm8-toolchain>
@@ -22,15 +22,15 @@ jeden z nich vybrat:
 
 ```bash
 make sdcc       # nebo
-make sdccrm     # nebo
 make sdcc-gas   # nebo
+make sdccrm     # nebo
 ```
 
 Potom můžete mezi nimi přepínat:
 
     make switch-sdcc
-    make switch-sdccrm
     make switch-sdcc-gas
+    make switch-sdccrm
 
 Přepnutí jen znamená, že se udělá symlink do root-adresáře projektu. Na divných
 systémech, které symlinky neumí (například Windows) se natvrdo kopíruje, takže
@@ -46,20 +46,9 @@ Detailní popis najdete na <https://chytrosti.marrek.cz/stm8oss.html>.
 
 Z hlediska STM8 má [SDCC](http://sdcc.sourceforge.net/) jednu zásadní nevýhodu:
 nedokáže odstranit mrtvý nepoužívaný kód. To může zapříčinit velké binární
-soubory plné nepoužívaného kódu. Pokud nepoužíváte knihovny 2. a 3. stran
-(třeba SPL) asi vám to nevadí.
-
-#### sdccrm
-
-[sdccrm](https://github.com/XaviDCR92/sdccrm) je nástroj pro optimalizaci
-mrtvého kódu vytvořeného SDCC, který odstraňuje nepoužívané funkce. Kód se
-nejprve zkompiluje do assembleru klasickým SDCC, poté se pomocí sdccrm vymaže
-kód, který se nepoužívá, celý proces se dokončí a kód se převede z assembleru
-do strojového kódu. Z logiky věci toto řešení vylučuje použití debugeru.
-
-Dále **je nutné** ručně zadat/editovat funkce, které nechcete optimalizovat –-
-tedy vyhodit. Proto je třeba sledovat chybová hlášení a název chybějící funkce
-zadat do souboru `exclude_reference` uvnitř projektového adresáře.
+soubory plné nepoužívaného kódu. Pokud nepoužíváte knihovny 3. stran
+asi vám to nevadí. U SPL je tato nevýhoda vyřešena použitím 
+[SPL rozdělené na malé soubory](https://gitlab.com/spseol/mit-no/spl/-/tree/main/SPLSPL).
 
 #### SDCC-gas
 
@@ -72,6 +61,22 @@ z [GNU binutils](https://cs.wikipedia.org/wiki/GNU_binutils), na druhou stranu
 to znamená, že nelze použít ty části sdcc-libraries, které jsou napsané v STM8
 assembleru a je nutné použít méně optimální kód napsaný v C nebo STM8 assembler
 přepsat do GNU assembleru.
+
+#### sdccrm
+
+Toto řešení je jen jakýsi historický pozůstatek a v 99% případů ho
+nepotřebujete a nechcete použít.
+
+[sdccrm](https://github.com/XaviDCR92/sdccrm) je nástroj pro optimalizaci
+mrtvého kódu vytvořeného SDCC, který odstraňuje nepoužívané funkce. Kód se
+nejprve zkompiluje do assembleru klasickým SDCC, poté se pomocí sdccrm vymaže
+kód, který se nepoužívá, celý proces se dokončí a kód se převede z assembleru
+do strojového kódu. Z logiky věci toto řešení vylučuje použití debugeru.
+
+Dále **je nutné** ručně zadat/editovat funkce, které nechcete optimalizovat –-
+tedy vyhodit. Proto je třeba sledovat chybová hlášení a název chybějící funkce
+zadat do souboru `exclude_reference` uvnitř projektového adresáře.
+
 
 
 Použití
@@ -100,9 +105,8 @@ else
 endif
 ```
 
-Pokud používáte `sdcc` nebo `sdccrm` je ještě potřebné v `Makefile`
-odkomentovat nebo zakomentovat nebo přidat ty části SPL knihovny, které zrovna
-(ne)používáte.
+Pokud používáte `sdccrm` je ještě potřebné v `Makefile` odkomentovat nebo
+zakomentovat nebo přidat ty části SPL knihovny, které zrovna (ne)používáte.
 
 ```make
 SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c 
