@@ -29,6 +29,9 @@ else
 endif
 ######################################################################################
 CC = $(CC_ROOT)/bin/sdcc
+ifeq ($(wildcard $(CC)),)
+	CC = sdcc
+endif
 
 #DEVICE=STM8S103
 DEVICE=$(shell bash .make/device $(DEVICE_FLASH))
@@ -186,12 +189,10 @@ flash2: $(TARGET).ihx
 	+stm8flash -c $(STLINK) -p $(DEVICE_FLASH) -s flash -w $(TARGET).ihx
 
 
-rebuild::
-	$(MAKE) clean
+rebuild:: clean
 	$(MAKE) all
 
-reflash::
-	$(MAKE) clean
+reflash:: clean
 	$(MAKE) flash
 
 openocd::
