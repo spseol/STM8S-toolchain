@@ -29,6 +29,7 @@ else
 	#CC_ROOT = /usr/local
 	#CC_ROOT = /usr/local/stow/sdcc-4.1.0
 	CC_ROOT = /usr/local/stow/sdcc-gas
+	CC_ROOT = /usr/local/stow/sdcc-4.3.6
 endif
 ######################################################################################
 CC = $(CC_ROOT)/bin/sdcc
@@ -82,7 +83,9 @@ SKIP_TRAPS = 1
 
 # set compiler path & parameters 
 #CFLAGS  = -mstm8 -lstm8 --opt-code-size 
-CFLAGS  = -mstm8 -lstm8 --opt-code-size --std-sdcc99 --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
+CFLAGS  = -mstm8 -lstm8 --opt-code-size --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
+#CFLAGS += --std-sdcc99 
+CFLAGS += --std-sdcc2x
 #CFLAGS += --disable-warning 283
 CFLAGS += -I inc
 CFLAGS += -D F_CPU=$(F_CPU)

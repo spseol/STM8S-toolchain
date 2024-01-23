@@ -73,7 +73,8 @@ endif
 
 # set compiler path & parameters 
 CFLAGS  = -mstm8 --out-fmt-elf --opt-code-size
-CFLAGS += --std-sdcc99
+#CFLAGS += --std-sdcc99
+CFLAGS += --std-sdcc2x
 CFLAGS += --asm=gas --function-sections --data-sections
 CFLAGS += --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
 

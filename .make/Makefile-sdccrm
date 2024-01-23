@@ -77,7 +77,9 @@ SKIP_TRAPS = 1
 
 # set compiler path & parameters 
 #CFLAGS  = -mstm8 -lstm8 --opt-code-size 
-CFLAGS  = -mstm8 -lstm8 --opt-code-size --std-sdcc99 --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
+CFLAGS  = -mstm8 -lstm8 --opt-code-size --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
+#CFFLAGS += --std-sdcc99 
+CFFLAGS += --std-sdcc2x
 #CFLAGS += --disable-warning 283
 CFLAGS += -I inc
 CFLAGS += -D F_CPU=$(F_CPU)
