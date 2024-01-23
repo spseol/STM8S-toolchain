@@ -159,7 +159,7 @@ $(TARGET).ihx: $(TARGET).elf
 	@echo
 
 
-$(OUTPUT_DIR)/%.d: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR)
+$(OUTPUT_DIR)/%.d: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR) ../SPL ../SPLSPL
 	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE) -MM > $@
 
 $(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
@@ -206,8 +206,17 @@ switch-sdcc::
 switch-sdccrm:
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
-spl::
-	+bash .make/spl.sh
+../SPL.tgz:
+	curl https://gitlab.com/spseol/mit-no/spl/-/archive/main/spl-main.tar.gz --output ../SPL.tgz
+../SPL: | ../SPL.tgz
+	tar -C .. --transform='s%spl-main/%%' -xzf ../SPL.tgz spl-main/SPL/
+	@printf "***********************************************************\n*  SPL byla rozbalena. Možná je třeba znovu spusti make   *\n***********************************************************\n"
+../SPLSPL: | ../SPL.tgz
+	tar -C .. --transform='s%spl-main/%%' -xzf ../SPL.tgz spl-main/SPLSPL/
+	@printf "***********************************************************\n*  SPL byla rozbalena. Možná je třeba znovu spusti make   *\n***********************************************************\n"
+
+spl: ../SPL ../SPLSPL
+
 tree::
 	+bash .make/tree.sh
 

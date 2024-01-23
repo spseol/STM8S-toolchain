@@ -20,7 +20,7 @@ if any_dir_not_exists ${SPLS[@]} ; then
 
     curl https://gitlab.com/spseol/mit-no/spl/-/archive/main/spl-main.tar.gz --output spl.tgz
     tar xzf spl.tgz
-    mv spl.tgz ..
+    mv spl.tgz ../SPL.tgz
 
     for dir in ${SPLS[@]}; do
         if ! [ -d ../$dir ]; then
