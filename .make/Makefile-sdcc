@@ -218,9 +218,9 @@ debug: $(TARGET_ELF)
 	+stm8-gdb --tui $^
 
 
-switch-sdcc-gas::
+switch-sdcc-gas:: clean
 	$(LN) .make/Makefile-sdcc-gas Makefile || $(CP) .make/Makefile-sdcc-gas Makefile
-switch-sdccrm:
+	switch-sdccrm:: clean
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
 ../SPL.tgz:

@@ -202,9 +202,9 @@ openocd::
 debug: $(TARGET).elf
 	+stm8-gdb --tui $^
 
-switch-sdcc::
+switch-sdcc:: clean
 	$(LN) .make/Makefile-sdcc Makefile || $(CP) .make/Makefile-sdcc Makefile
-switch-sdccrm:
+switch-sdccrm:: clean
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
 ../SPL.tgz:
