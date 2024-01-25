@@ -26,6 +26,11 @@ make sdcc-gas   # nebo
 make sdccrm     # nebo
 ```
 
+**Pokud si nejste jistí, co vybrat, vyberte si `sdcc`** a napište
+```bash
+make sdcc
+```
+
 Potom můžete mezi nimi přepínat:
 
     make switch-sdcc
