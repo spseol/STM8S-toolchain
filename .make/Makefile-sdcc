@@ -102,8 +102,10 @@ OUTPUT_DIR = ./build-$(DEVICE)
 OUTPUT_DIR_ELF = ./build-$(DEVICE)-elf
 TARGET     = $(OUTPUT_DIR)/out.ihx
 TARGET_ELF     = $(OUTPUT_DIR_ELF)/out.elf
-SPLLIB = $(OUTPUT_DIR)/spl.lib
-SPLLIB_ELF = $(OUTPUT_DIR_ELF)/spl.lib
+OUTPUT_SPL_DIR = ../build_SPLlib.ihx-$(DEVICE)
+OUTPUT_SPL_DIR_ELF = ../build_SPLlib.elf-$(DEVICE)
+SPLLIB = ../SPLSPL/spl-$(DEVICE).ihx.lib
+SPLLIB_ELF = ../SPLSPL/spl-$(DEVICE).elf.lib
 
 # set project folder and files (all *.c)
 PRJ_ROOT    = .
@@ -131,11 +133,13 @@ SPL_INC_DIR = ../SPLSPL/inc/
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
 ifneq ($(wildcard ../SPLSPL),)
 	include ../SPLSPL/mk/$(DEVICE).mk
+else
+start: spl
 endif
-SPL_SOURCE = $(foreach prefix, $(SPL_SOURCE_PREFIX), $(notdir $(wildcard $(SPL_SRC_DIR)/$(prefix)*.c)))
 
-SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.rel))
-SPL_OBJECTS_ELF := $(addprefix $(OUTPUT_DIR_ELF)/, $(SPL_SOURCE:.c=.rel))
+SPL_SOURCE = $(foreach prefix, $(SPL_SOURCE_PREFIX), $(notdir $(wildcard $(SPL_SRC_DIR)/$(prefix)*.c)))
+SPL_OBJECTS := $(addprefix $(OUTPUT_SPL_DIR)/, $(SPL_SOURCE:.c=.rel))
+SPL_OBJECTS_ELF := $(addprefix $(OUTPUT_SPL_DIR_ELF)/, $(SPL_SOURCE:.c=.rel))
 
 # collect all include folders
 INCLUDE = -I$(PRJ_INC_DIR) -I$(SPL_INC_DIR) 
@@ -143,16 +147,17 @@ INCLUDE = -I$(PRJ_INC_DIR) -I$(SPL_INC_DIR)
 # collect all source directories
 VPATH=$(PRJ_SRC_DIR):$(SPL_SRC_DIR)
 
+.PHONY: ihx elf all
 
-ihx:: $(TARGET)
-elf:: $(TARGET_ELF)
+ihx: $(TARGET)
+elf: $(TARGET_ELF)
 all: ihx elf
 
-$(TARGET_ELF): $(SPLLIB_ELF) $(PRJ_OBJECTS_ELF)
+$(TARGET_ELF): $(PRJ_OBJECTS_ELF)  $(SPLLIB_ELF)
 	$(CC) $(CFLAGS) $(FMT_ELF) -o $(TARGET_ELF) $^
 	$(LN) $@ ./out.elf || $(CP) $@ ./out.elf
 
-$(TARGET): $(SPLLIB) $(PRJ_OBJECTS) 
+$(TARGET): $(PRJ_OBJECTS)  $(SPLLIB)
 	$(CC) $(CFLAGS) -o $(TARGET) $^
 	$(LN) $@ ./out.ihx || $(CP) $@ ./out.ihx
 	@echo
@@ -161,22 +166,37 @@ $(TARGET): $(SPLLIB) $(PRJ_OBJECTS)
 
 $(OUTPUT_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR) ../SPLSPL
 	$(CC) $(CFLAGS) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
-
 $(OUTPUT_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR_ELF) ../SPLSPL
 	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
 
+$(OUTPUT_SPL_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_SPL_DIR) ../SPLSPL
+	$(CC) $(CFLAGS) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
+$(OUTPUT_SPL_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_SPL_DIR_ELF) ../SPLSPL
+	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
 
-$(SPLLIB): $(SPL_OBJECTS) | $(OUTPUT_DIR) ../SPLSPL
+
+ifeq ($(wildcard $(SPLLIB)),)
+$(SPLLIB): $(SPL_OBJECTS) | $(OUTPUT_SPL_DIR)
 	$(AR) -rc $(SPLLIB) $^
-$(SPLLIB_ELF): $(SPL_OBJECTS_ELF) | $(OUTPUT_DIR_ELF) ../SPLSPL
+endif
+ifeq ($(wildcard $(SPLLIB_ELF)),)
+$(SPLLIB_ELF): $(SPL_OBJECTS_ELF) | $(OUTPUT_SPL_DIR_ELF)
 	$(AR) -rc $(SPLLIB_ELF) $^
+endif
 
 
 $(OUTPUT_DIR):
-	$(MKDIR) -pv $(OUTPUT_DIR)
+	$(MKDIR) -p $(OUTPUT_DIR)
 $(OUTPUT_DIR_ELF):
-	$(MKDIR) -pv $(OUTPUT_DIR_ELF)
+	$(MKDIR) -p $(OUTPUT_DIR_ELF)
+$(OUTPUT_SPL_DIR):
+	$(MKDIR) -p $@
+$(OUTPUT_SPL_DIR_ELF):
+	$(MKDIR) -p $@
 
+
+
+.PHONY: clean
 
 clean:
 	rm -f ./out.ihx
@@ -184,6 +204,9 @@ clean:
 	rm -f out-$(DEVICE).ihex
 	rm -Rf $(OUTPUT_DIR)
 	rm -Rf $(OUTPUT_DIR_ELF)
+
+
+.PHONY: flash flash-elf flash-ihex stm8flash rebuild reflash
 
 flash: $(TARGET)
 ifeq ($(OS),Windows_NT)
@@ -204,22 +227,25 @@ flash-ihex: $(TARGET_ELF)
 stm8flash: $(TARGET)
 	+stm8flash -c $(STLINK) -p $(DEVICE_FLASH) -s flash -w out.ihx
 
-rebuild:: clean
+rebuild: clean
 	$(MAKE) elf
 
-reflash:: clean
+reflash: clean
 	$(MAKE) flash
 
-openocd::
+
+.PHONY: openocd debug switch-sdccrm switch-sdcc-gas 
+
+openocd:
 	+$(OPENOCD) -c "init" -c "reset halt"
 
 debug: $(TARGET_ELF)
 	+stm8-gdb --tui $^
 
 
-switch-sdcc-gas:: clean
+switch-sdcc-gas: clean
 	$(LN) .make/Makefile-sdcc-gas Makefile || $(CP) .make/Makefile-sdcc-gas Makefile
-switch-sdccrm:: clean
+switch-sdccrm: clean
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
 ../SPL.tgz:
@@ -231,9 +257,10 @@ switch-sdccrm:: clean
 	tar -C .. --transform='s%spl-main/%%' -xzf ../SPL.tgz spl-main/SPLSPL/
 	@printf "***********************************************************\n*  SPL byla rozbalena. Možná je třeba znovu spusti make   *\n***********************************************************\n"
 
+.PHONY: spl tree
+
 spl: ../SPL ../SPLSPL
 
-tree::
+tree:
 	+bash .make/tree.sh
 
-.PHONY: clean debug

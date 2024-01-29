@@ -93,6 +93,10 @@ LIB_DIRS = $(addprefix -L, $(CC_ROOT)/share/sdcc/lib/stm8)
 # set output folder and target name
 OUTPUT_DIR = ./build-$(DEVICE)
 TARGET     = $(OUTPUT_DIR)/out
+OUTPUT_SPL_LIBDIR = ../build_SPLlib-$(DEVICE)
+OUTPUT_SDCC_LIBDIR = ./build_lib-$(DEVICE)
+SPL_LIB = ../SPL/spl-$(DEVICE).o.lib
+SDCC_LIB = ../sdcc.o.lib
 
 # set project folder and files (all *.c)
 PRJ_ROOT    = .
@@ -116,9 +120,11 @@ SPL_INC_DIR = ../SPL/inc/
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
 ifneq ($(wildcard ../SPLSPL),)
 	include ../SPLSPL/mk/$(DEVICE).mk
+else
+start: spl
 endif
 SPL_SOURCE = $(foreach prefix, $(SPL_SOURCE_PREFIX), $(notdir $(wildcard $(SPL_SRC_DIR)/$(prefix)*.c)))
-SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.o))
+SPL_OBJECTS := $(addprefix $(OUTPUT_SPL_LIBDIR)/, $(SPL_SOURCE:.c=.o))
 
 SDCC_LIB_SRC_DIR = $(CC_ROOT)/share/sdcc/lib/src/
 ### buď se knihovní funkce vyberou přes hvězdičku
@@ -129,7 +135,7 @@ SDCC_LIB_SOURCE += $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_mod*.c))
 #SDCC_LIB_SOURCE +=  _modulong.c _mullong.c _divulong.c _mulint.c _modsint.c
 #SDCC_LIB_SOURCE  = $(notdir $(wildcard $(CC_ROOT)/share/sdcc/lib/src/_*.c)) # toto nefunguje dobře
 SDCC_LIB_SOURCE += printf_large.c _strlen.c sprintf.c vprintf.c puts.c
-SDCC_LIB_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SDCC_LIB_SOURCE:.c=.o))
+SDCC_LIB_OBJECTS := $(addprefix $(OUTPUT_SDCC_LIBDIR)/, $(SDCC_LIB_SOURCE:.c=.o))
 
 # collect all include folders
 INCLUDE = -I$(PRJ_INC_DIR) -I$(SPL_INC_DIR) 
@@ -144,11 +150,12 @@ VPATH=$(PRJ_SRC_DIR):$(SPL_SRC_DIR):$(SDCC_LIB_SRC_DIR)
 #-include $(DEPS)
 
 
-ihx:: $(TARGET).ihx
-elf:: $(TARGET).elf
-all:: $(TARGET).ihx
+.PHONY: ihx elf all
+ihx: $(TARGET).ihx
+elf: $(TARGET).elf
+all: $(TARGET).ihx
 
-$(TARGET).elf: $(PRJ_OBJECTS) $(SPL_OBJECTS) sdcc.lib
+$(TARGET).elf: $(PRJ_OBJECTS)  $(SPL_LIB) $(SDCC_LIB)
 	$(LD) $^ -o $@ $(LD_FLAGS) $(LIBS)
 	$(LN) $@ ./out.elf || $(LN) $@ ./out.elf
 
@@ -162,22 +169,58 @@ $(TARGET).ihx: $(TARGET).elf
 
 $(OUTPUT_DIR)/%.d: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR) ../SPL ../SPLSPL
 	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE) -MM > $@
-
 $(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
+	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE)  -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
+
+$(OUTPUT_SPL_LIBDIR)/%.d: %.c | $(OUTPUT_SPL_LIBDIR)  ../SPL ../SPLSPL
+	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE) -MM > $@
+$(OUTPUT_SPL_LIBDIR)/%.o: %.c $(OUTPUT_SPL_LIBDIR)/%.d
+	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE)  -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
+
+$(OUTPUT_SDCC_LIBDIR)/%.d: %.c | $(OUTPUT_SDCC_LIBDIR)
+	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE) -MM > $@
+$(OUTPUT_SDCC_LIBDIR)/%.o: %.c $(OUTPUT_SDCC_LIBDIR)/%.d
 	$(CC) -c $< $(CFLAGS) -D$(DEVICE) $(INCLUDE)  -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
 
 $(OUTPUT_DIR):
 	$(MKDIR) -p $(OUTPUT_DIR)
+$(OUTPUT_SPL_LIBDIR):
+	$(MKDIR) -p $(OUTPUT_SPL_LIBDIR)
+$(OUTPUT_SDCC_LIBDIR):
+	$(MKDIR) -p $(OUTPUT_SDCC_LIBDIR)
 
-sdcc.lib: $(SDCC_LIB_OBJECTS)
-	stm8-ar -rc sdcc.lib $^
+ifeq ($(wildcard $(SPL_LIB)),)
+$(SPL_LIB): $(SPL_OBJECTS) 
+	stm8-ar -rc $(SPL_LIB) $^
+endif
+ifeq ($(wildcard $(SDCC_LIB)),)
+$(SDCC_LIB): $(SDCC_LIB_OBJECTS)
+	stm8-ar -rc $(SDCC_LIB) $^
+endif
 
-clean::
+.PHONY: clean clean.spl.lib clean.spl.objects clen.sdcc.lib clean.sdcc.objects 
+.PHONY: cleanall clean.objects 
+
+clean:
 	rm -f ./out.ihx
 	rm -f ./out.elf
 	rm -rf $(OUTPUT_DIR)
-cleanall:clean
-	rm -f ./sdcc.lib
+
+clean.spl.objects:
+	rm -Rf $(OUTPUT_SPL_LIBDIR)
+clean.spl.lib: clean.spl.objects
+	rm -f $(SPL_LIB)
+
+clean.sdcc.objects:
+	rm -Rf $(OUTPUT_SDCC_LIBDIR)
+clean.sdcc.lib: clean.sdcc.objects
+	rm -f $(SDCC_LIB)
+
+clean.objects: clean.spl.objects clean.sdcc.objects
+cleanall: clean.spl.lib clean.sdcc.lib clean
+
+
+.PHONY:	flash flash2 rebuild
 
 flash: $(TARGET).ihx
 ifeq ($(OS),Windows_NT)
@@ -189,22 +232,23 @@ endif
 flash2: $(TARGET).ihx
 	+stm8flash -c $(STLINK) -p $(DEVICE_FLASH) -s flash -w $(TARGET).ihx
 
-
 rebuild:: clean
 	$(MAKE) all
 
 reflash:: clean
 	$(MAKE) flash
 
-openocd::
+.PHONY: openocd debug switch-sdcc switch-sdccrm spl tree
+
+openocd:
 	+$(OPENOCD) -c "init" -c "reset halt"
 
 debug: $(TARGET).elf
 	+stm8-gdb --tui $^
 
-switch-sdcc:: clean
+switch-sdcc: clean
 	$(LN) .make/Makefile-sdcc Makefile || $(CP) .make/Makefile-sdcc Makefile
-switch-sdccrm:: clean
+switch-sdccrm: clean
 	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
 
 ../SPL.tgz:
@@ -220,7 +264,5 @@ spl: ../SPL ../SPLSPL
 
 tree::
 	+bash .make/tree.sh
-
-.PHONY: clean debug
 
 # vim:ft=make
