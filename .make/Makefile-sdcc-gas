@@ -260,9 +260,15 @@ switch-sdccrm: clean
 	tar -C .. --transform='s%spl-main/%%' -xzf ../SPL.tgz spl-main/SPLSPL/
 	@printf "***********************************************************\n*  SPL byla rozbalena. Možná je třeba znovu spusti make   *\n***********************************************************\n"
 
+.PHONY: spl spl-renew tree
+
 spl: ../SPL ../SPLSPL
 
-tree::
+spl-renew:
+	rm -Rf ../SPL* ../spl*
+	$(MAKE) spl
+
+tree:
 	+bash .make/tree.sh
 
 # vim:ft=make
