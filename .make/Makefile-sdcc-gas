@@ -198,26 +198,26 @@ $(SDCC_LIB): $(SDCC_LIB_OBJECTS)
 	stm8-ar -rc $(SDCC_LIB) $^
 endif
 
-.PHONY: clean clean.spl.lib clean.spl.objects clen.sdcc.lib clean.sdcc.objects 
-.PHONY: cleanall clean.objects 
+.PHONY: clean clean-spl-lib clean-spl-objects clean-sdcc-lib clean-sdcc-objects 
+.PHONY: cleanall clean-objects 
 
 clean:
 	rm -f ./out.ihx
 	rm -f ./out.elf
 	rm -rf $(OUTPUT_DIR)
 
-clean.spl.objects:
+clean-spl-objects:
 	rm -Rf $(OUTPUT_SPL_LIBDIR)
-clean.spl.lib: clean.spl.objects
+clean-spl-lib: clean-spl-objects
 	rm -f $(SPL_LIB)
 
-clean.sdcc.objects:
+clean-sdcc-objects:
 	rm -Rf $(OUTPUT_SDCC_LIBDIR)
-clean.sdcc.lib: clean.sdcc.objects
+clean-sdcc-lib: clean-sdcc-objects
 	rm -f $(SDCC_LIB)
 
-clean.objects: clean.spl.objects clean.sdcc.objects
-cleanall: clean.spl.lib clean.sdcc.lib clean
+clean-objects: clean-spl-objects clean-sdcc-objects
+cleanall: clean-spl-lib clean-sdcc-lib clean
 
 
 .PHONY:	flash flash2 rebuild

@@ -196,7 +196,7 @@ $(OUTPUT_SPL_DIR_ELF):
 
 
 
-.PHONY: clean
+.PHONY: clean clean-spl-objects clean-spl-lib  cleanall
 
 clean:
 	rm -f ./out.ihx
@@ -204,6 +204,16 @@ clean:
 	rm -f out-$(DEVICE).ihex
 	rm -Rf $(OUTPUT_DIR)
 	rm -Rf $(OUTPUT_DIR_ELF)
+
+clean-spl-objects:
+	rm -Rf $(OUTPUT_SPL_DIR)
+	rm -Rf $(OUTPUT_SPL_DIR_ELF)
+
+clean-spl-lib: clean-spl-objects
+	rm -f $(SPLLIB)
+	rm -f $(SPLLIB_ELF)
+
+cleanall: clean-spl-objects clean 
 
 
 .PHONY: flash flash-elf flash-ihex stm8flash rebuild reflash
