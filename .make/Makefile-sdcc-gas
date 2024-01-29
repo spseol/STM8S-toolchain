@@ -265,7 +265,7 @@ switch-sdccrm: clean
 spl: ../SPL ../SPLSPL
 
 spl-renew:
-	rm -Rf ../SPL* ../spl*
+	rm -Rf ../SPL*
 	$(MAKE) spl
 
 tree:
