@@ -181,4 +181,7 @@ spl::
 tree::
 	+bash .make/tree.sh
 
+compile_commands.json: src/ ../SPL/
+	$(PYTHON) .make/compile_database_generator.py $(DEVICE)
+
 .PHONY: clean

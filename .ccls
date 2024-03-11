@@ -1,7 +1,7 @@
--xc
--std=c99
+sdcc
+-c
+-std=c2x
 -Wall
--pedantic
 -I.
 -I./inc/
 -I./src
@@ -13,8 +13,7 @@
 -D_SDCC_
 -D__SDCC
 -D__SDCC__
--DSDCC_VERSION=40000
+-DSDCC_VERSION=41000
 -D__CLANG
 -DSTM8S208 
 -DF_CPU=16000000
--Wno-gnu-binary-literal

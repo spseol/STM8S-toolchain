@@ -198,6 +198,9 @@ $(SDCC_LIB): $(SDCC_LIB_OBJECTS)
 	stm8-ar -rc $(SDCC_LIB) $^
 endif
 
+compile_commands.json: $(PRJ_SRC_DIR) $(SPL_SRC_DIR)
+	$(PYTHON) .make/compile_database_generator.py $(DEVICE)
+
 .PHONY: clean clean-spl-lib clean-spl-objects clean-sdcc-lib clean-sdcc-objects 
 .PHONY: cleanall clean-objects 
 

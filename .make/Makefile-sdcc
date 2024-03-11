@@ -195,6 +195,8 @@ $(OUTPUT_SPL_DIR_ELF):
 	$(MKDIR) -p $@
 
 
+compile_commands.json: $(PRJ_SRC_DIR) $(SPL_SRC_DIR)
+	$(PYTHON) .make/compile_database_generator.py $(DEVICE)
 
 .PHONY: clean clean-spl-objects clean-spl-lib  cleanall
 
@@ -252,6 +254,8 @@ openocd:
 debug: $(TARGET_ELF)
 	+stm8-gdb --tui $^
 
+switch-device: clean
+	+bash .make/switch_device.sh
 
 switch-sdcc-gas: clean
 	$(LN) .make/Makefile-sdcc-gas Makefile || $(CP) .make/Makefile-sdcc-gas Makefile
