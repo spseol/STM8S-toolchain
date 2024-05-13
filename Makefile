@@ -13,8 +13,9 @@ else
 endif
 CP = cp
 
+default: sdcc
 
-menu::
+help:
 	@echo "# Vyber si toolchain!"
 	@echo "# Detaily v REAME a na adrese "
 	@echo "# https://chytrosti.marrek.cz/stm8oss.html"
@@ -29,17 +30,16 @@ menu::
 	@echo "# Pokud chces male binarky i debug a mas 'SDCC-gas' zavolej:"
 	@echo \"make sdcc-gas\"
 
-default: sdccrm
 
-sdcc:: spl
+sdcc: spl
 	$(LN) .make/Makefile-sdcc Makefile || cp .make/Makefile-sdcc Makefile
 	@echo "# znovu zavolej make"
-sdccrm:: spl
+sdccrm: spl
 	$(LN) .make/Makefile-sdccrm Makefile || cp .make/Makefile-sdccrm Makefile
 	@echo "# znovu zavolej make"
-sdcc-gas:: spl
+sdcc-gas: spl
 	$(LN) .make/Makefile-sdcc-gas Makefile || cp .make/Makefile-sdcc-gas Makefile
 	@echo "# znovu zavolej make"
 
-spl::
+spl:
 	bash .make/spl.sh
