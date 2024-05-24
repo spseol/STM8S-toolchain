@@ -22,8 +22,9 @@ STLINK=stlinkv21
 F_CPU=16000000
 
 ifeq ($(OS),Windows_NT)
-	CC_ROOT = "/c/Program Files/SDCC"
-	STVP_ROOT = "/c/Program Files (x86)/STMicroelectronics/st_toolset/stvp"
+	CC_ROOT = /c/Program Files/SDCC
+	STVP_ROOT = /c/Program Files (x86)/STMicroelectronics/st_toolset/stvp
+	PATH := $(CC_ROOT)/bin:$(PATH)	
 else
 	#CC_ROOT = /usr
 	#CC_ROOT = /usr/local
