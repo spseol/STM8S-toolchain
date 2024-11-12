@@ -178,11 +178,15 @@ $(OUTPUT_SPL_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_SPL_DIR_ELF) ..
 
 ifeq ($(wildcard $(SPLLIB)),)
 $(SPLLIB): $(SPL_OBJECTS) | $(OUTPUT_SPL_DIR)
-	$(AR) -rc $(SPLLIB) $^
+	@echo $(SPL_OBJECTS) > objects.list
+	$(AR) -rc $(SPLLIB) @objects.list
+	@rm objects.list
 endif
 ifeq ($(wildcard $(SPLLIB_ELF)),)
 $(SPLLIB_ELF): $(SPL_OBJECTS_ELF) | $(OUTPUT_SPL_DIR_ELF)
-	$(AR) -rc $(SPLLIB_ELF) $^
+	@echo $(SPL_OBJECTS) > objects.list
+	$(AR) -rc $(SPLLIB_ELF) @objects.list
+	@rm objects.list
 endif
 
 
