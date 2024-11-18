@@ -22,24 +22,29 @@ STLINK=stlinkv21
 F_CPU=16000000
 
 ifeq ($(OS),Windows_NT)
-	CC_ROOT = /c/Program Files/SDCC
-	STVP_ROOT = "/c/Program Files (x86)/STMicroelectronics/st_toolset/stvp"
-	PATH := $(CC_ROOT)/bin:$(PATH)	
+  CC_ROOT = /c/Program Files/SDCC
+  PATH := $(CC_ROOT)/bin:$(PATH)
+  CC = /c/Program\\ Files/SDCC/bin/sdcc
+  AR = /c/Program\\ Files/SDCC/bin/sdar
+  
+  STVP_ROOT = "/c/Program Files (x86)/STMicroelectronics/st_toolset/stvp"
 else
-	#CC_ROOT = /usr
-	#CC_ROOT = /usr/local
-	CC_ROOT = /usr/local/stow/sdcc-4.4.0
-	#CC_ROOT = /usr/local/stow/sdcc-gas
+  #CC_ROOT = /usr
+  #CC_ROOT = /usr/local
+  CC_ROOT = /usr/local/stow/sdcc-4.4.0
+  #CC_ROOT = /usr/local/stow/sdcc-gas
+
+  CC = $(CC_ROOT)/bin/sdcc
+  AR = $(CC_ROOT)/bin/sdar
+  ifeq ($(wildcard $(CC)),)
+    CC = sdcc
+  endif
+  ifeq ($(wildcard $(AR)),)
+    AR = sdar
+  endif
 endif
 ######################################################################################
-CC = $(CC_ROOT)/bin/sdcc
-AR = $(CC_ROOT)/bin/sdar
-ifeq ($(wildcard $(CC)),)
-	CC = sdcc
-endif
-ifeq ($(wildcard $(AR)),)
-	AR = sdar
-endif
+
 
 #DEVICE=STM8S103
 DEVICE=$(shell bash .make/device $(DEVICE_FLASH))
@@ -133,7 +138,7 @@ SPL_INC_DIR = ../SPLSPL/inc/
 #SPL_SOURCE += stm8s_tim3.c
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
 ifneq ($(wildcard ../SPLSPL),)
-	include ../SPLSPL/mk/$(DEVICE).mk
+	include ../SPLSPL/mk/$(DEVICE).mk  # zde se definuje proměnná $(SPL_SOURCE_PREFIX)
 else
 start: spl
 endif
@@ -170,18 +175,25 @@ $(OUTPUT_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR) ../SPLSPL
 $(OUTPUT_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR_ELF) ../SPLSPL
 	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
 
-$(OUTPUT_SPL_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_SPL_DIR) ../SPLSPL
+$(OUTPUT_SPL_DIR)/%.rel: %.c $(PRJ_INCS)  | $(OUTPUT_SPL_DIR) ../SPLSPL
 	$(CC) $(CFLAGS) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
-$(OUTPUT_SPL_DIR_ELF)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_SPL_DIR_ELF) ../SPLSPL
+$(OUTPUT_SPL_DIR_ELF)/%.rel: %.c $(PRJ_INCS)  | $(OUTPUT_SPL_DIR_ELF) ../SPLSPL
 	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@ 2>&1 | $(PYTHON) .make/recolor.py; exit $${PIPESTATUS[0]}
 
 
 ifeq ($(wildcard $(SPLLIB)),)
 $(SPLLIB): $(SPL_OBJECTS) | $(OUTPUT_SPL_DIR)
-	@echo $(SPL_OBJECTS) > objects.list
+	@rm -f objects.list
+	@echo -n "Procesing: "
+	@for prefix in $(SPL_SOURCE_PREFIX); do \
+         echo -n "$$prefix "; \
+         ls $(OUTPUT_SPL_DIR)/$$prefix*.rel >> objects.list; \
+    done;
+	@echo -e "\nCreating library $(SPLLIB)"
 	$(AR) -rc $(SPLLIB) @objects.list
-	@rm objects.list
+	@rm -f objects.list
 endif
+
 ifeq ($(wildcard $(SPLLIB_ELF)),)
 $(SPLLIB_ELF): $(SPL_OBJECTS_ELF) | $(OUTPUT_SPL_DIR_ELF)
 	@echo $(SPL_OBJECTS) > objects.list
