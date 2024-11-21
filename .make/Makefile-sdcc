@@ -155,8 +155,8 @@ VPATH=$(PRJ_SRC_DIR):$(SPL_SRC_DIR)
 
 .PHONY: ihx elf all
 
-ihx: $(TARGET)
-elf: $(TARGET_ELF)
+ihx: compile_commands.json  $(TARGET)
+elf: compile_commands.json  $(TARGET_ELF)
 all: ihx elf
 
 $(TARGET_ELF): $(PRJ_OBJECTS_ELF)  $(SPLLIB_ELF)
@@ -223,6 +223,9 @@ clean:
 	rm -f out-$(DEVICE).ihex
 	rm -Rf $(OUTPUT_DIR)
 	rm -Rf $(OUTPUT_DIR_ELF)
+	rm -f compile_commands.json
+
+clean-spl: clean-spl-lib
 
 clean-spl-objects:
 	rm -Rf $(OUTPUT_SPL_DIR)
@@ -232,7 +235,7 @@ clean-spl-lib: clean-spl-objects
 	rm -f $(SPLLIB)
 	rm -f $(SPLLIB_ELF)
 
-cleanall: clean-spl-objects clean 
+cleanall: clean-spl-lib clean 
 
 
 .PHONY: flash flash-elf flash-ihex stm8flash rebuild reflash
