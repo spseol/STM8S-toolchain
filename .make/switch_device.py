@@ -5,9 +5,14 @@
 # Autor:   Marek Nožka, marek <@t> tlapicka <d.t> net
 # Licence: GNU/GPL
 ############################################################################
-from pick import pick
 import sys
 from devices import DEVICES
+
+try:
+    from pick import pick
+except ImportError:
+    from winpick import pick
+
 
 ############################################################################
 

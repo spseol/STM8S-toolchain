@@ -10,7 +10,11 @@ import re
 from sys import argv
 import os
 import glob
-from pick import pick
+
+try:
+    from pick import pick
+except ImportError:
+    from winpick import pick
 
 ############################################################################
 DEFS = "-D_SDCC -D_SDCC_ -D__SDCC -D__SDCC__ -DSDCC_VERSION=40000".split()
