@@ -1,3 +1,7 @@
 Language: Cpp
-BasedOnStyle: LLVM
+BasedOnStyle: K&R
 IndentWidth: 4
+UseTab: Never
+MaxEmptyLinesToKeep: 2
+AlignAfterOpenBracket: Align
+BreakBeforeBraces: Linux
