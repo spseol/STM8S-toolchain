@@ -1,5 +1,5 @@
 Language: Cpp
-BasedOnStyle: K&R
+BasedOnStyle: LLVM
 IndentWidth: 4
 UseTab: Never
 MaxEmptyLinesToKeep: 2
