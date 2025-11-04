@@ -1,6 +1,6 @@
 import re
 import sys
-from colorama import Fore, Style, just_fix_windows_console
+from colorama import Fore, Back, Style, just_fix_windows_console
 
 just_fix_windows_console()
 
@@ -26,7 +26,7 @@ while line := sys.stdin.readline():
     if not re.search("/SPL(-STM8S...)?/", line, re.I):
         line = re.sub(
             r"[\w\d/-_]+(\.c|\.h)(:\d+)?",
-            colorized(Fore.LIGHTWHITE_EX),
+            colorized(Fore.LIGHTWHITE_EX+Back.BLACK),
             line,
             flags=re.I,
         )
