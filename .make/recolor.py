@@ -28,8 +28,8 @@ while line := sys.stdin.readline():
             r"[\w\d/-_]+(\.c|\.h)(:\d+)?",
             colorized(Fore.LIGHTWHITE_EX),
             line,
-            re.I,
+            flags=re.I,
         )
-        line = re.sub(r"[^:]+error[^:]*:", colorized(Fore.LIGHTRED_EX), line, re.I)
-        line = re.sub(r"[^:]+warning[^:]*:", colorized(Fore.LIGHTYELLOW_EX), line, re.I)
+        line = re.sub(r"[^:]+error[^:]*:", colorized(Fore.LIGHTRED_EX), line, flags=re.I)
+        line = re.sub(r"[^:]+warning[^:]*:", colorized(Fore.LIGHTYELLOW_EX), line, flags=re.I)
         sys.stderr.write(line)
