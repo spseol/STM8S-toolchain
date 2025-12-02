@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo  ${1^^} | cut -c1-8
+echo "$1" | tr '[:lower:]' '[:upper:]' | cut -c1-8
 
