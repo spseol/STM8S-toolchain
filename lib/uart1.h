@@ -23,6 +23,8 @@
 
 #endif /* __STM8_UART1_H*/
 
+PUTCHAR_PROTOTYPE;
+GETCHAR_PROTOTYPE;
 
 void init_uart1(void);
 

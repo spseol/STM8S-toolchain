@@ -22,6 +22,7 @@ void init_uart1(void)
                UART1_MODE_TXRX_ENABLE   //  - Receive and transmit enabled
         );
     UART1_Cmd(ENABLE);
+    //UART1_ITConfig(UART1_IT_RXNE, ENABLE);
 }
 
 
