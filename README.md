@@ -1,66 +1,64 @@
-STM8 (SPŠE) toolchain
+STM8 (SPŠE) Toolchain
 ==============================
 
-* Toto je startovací strom zdrojových kódů a `Makefile` pro výuku Mikroprocesorové
-  techniky
-  s [STM8S](https://www.st.com/en/microcontrollers-microprocessors/stm8s-series.html).
-* Strom je určen pro překladač [SDCC](http://sdcc.sourceforge.net/) (nebo 
+[🇨🇿 Česká verze](README.cs.md) | **🇬🇧 English**
+
+* This is a starter source code tree and `Makefile` for teaching Microprocessor
+  Technology with [STM8S](https://www.st.com/en/microcontrollers-microprocessors/stm8s-series.html).
+* The tree is designed for the [SDCC](http://sdcc.sourceforge.net/) compiler (or
   [SDCC-gas](https://github.com/XaviDCR92/sdcc-gas)).
-* Standardní knihovna pro práci s periferiemi
-  [SPL](https://www.st.com/content/st_com/en/products/embedded-software/mcu-mpu-embedded-software/stm8-embedded-software/stsw-stm8069.html)
-  *by se měla* (z licenčních důvodů) stáhnout zvlášť ze stránek výrobce a použít
-  [patch](https://github.com/gicking/STM8-SPL_SDCC_patch). Ale myslím, že když napíšete
-  `make spl` že to nebude hřích.
-* Konkurence a inspirace:
+* The Standard Peripheral Library [SPL](https://www.st.com/content/st_com/en/products/embedded-software/mcu-mpu-embedded-software/stm8-embedded-software/stsw-stm8069.html)
+  *should* (for licensing reasons) be downloaded separately from the manufacturer's website and use the
+  [patch](https://github.com/gicking/STM8-SPL_SDCC_patch). But I think if you run
+  `make spl` it won't be a sin.
+* Competition and inspiration:
   * <https://gitlab.com/wykys/stm8-tools>
   * <https://github.com/matejkrenek/stm8-toolchain>
 
-Tři Mejkfaily ....
+Three Makefiles
 ------------------------------------
 
-K dispozici jsou celkem tři `Makefile` v adresáři `.make`. Je to proto, že kompilátor
-`SDCC` nedokáže odstranit mrtvý kód. Existují asi tři řešení. To první je
-nejoptimálnější, další dvě řešení jsem tu nechal pro strýčka příhodu. **Když
-poprve zavoláte `make` přepne se toolchain do tohoto nejoptimálnějšího řešení zvaného
-`sdcc`.**
+There are three `Makefile` variants available in the `.make` directory. This is because the
+`SDCC` compiler cannot remove dead code. There are three solutions. The first one is
+the most optimal, the other two solutions are kept just in case. **When you run `make`
+for the first time, the toolchain will switch to the most optimal solution called `sdcc`.**
 
-Takže pro výběr Makefile zavoláte:
+To select a Makefile, run:
 
 ```zsh
-make 
-# nebo
+make
+# or
 make sdcc
-# nebo 
+# or
 make sdcc-gas
-# nebo 
+# or
 make sdccrm
 ```
 
 
-Mezi jednotlivými `Makefile` se potom můžete přepínat:
+You can switch between `Makefile` variants later:
 
     make switch-sdcc
     make switch-sdcc-gas
     make switch-sdccrm
 
-Přepnutí jen znamená, že se udělá symlink do root-adresáře projektu. Na divných
-systémech, které symlinky neumí (například Windows) se natvrdo kopíruje, takže
-tato operace může být ztrátová. Na normálních systémech (asi všechny, kromě
-Windows) je tato operace bezztrátová.
+Switching only means creating a symlink to the root directory of the project. On systems
+that don't support symlinks (like Windows), the file is copied instead, so this operation
+may be lossy. On normal systems (pretty much all except Windows), this operation is lossless.
 
-Pro více detailů se podívejte na
+For more details, see
 <https://chytrosti.marrek.cz/stm8oss.html>
 
 
-Použití
+Usage
 --------------
 
-Nejprve je třeba vybrat Makefile. Pokud jste to ještě neudělali, tak zavolejte
+First, you need to select a Makefile. If you haven't done so yet, run:
 
     make
 
-Poté je třeba v `Makefile` správně nastavit µprocesor a jeho frekvenci;
-případně cestu k instalaci SDCC, 
+Then you need to configure the microprocessor and its frequency in the `Makefile`;
+optionally the path to SDCC installation, or
 [STVP](https://www.st.com/en/development-tools/stvp-stm8.html).
 
 ```make
@@ -82,46 +80,45 @@ else
 endif
 ```
 
-... no a potom už jen bastlíte, programujete a voláte `make`.
+... and then just tinker, program and run `make`.
 
-| příkaz&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||
+| Command&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||
 |:---------- |:--------------------------- |
-| `make spl` | stáhne a nachystá knihovny |
-| `make` | provede kompilaci (alias pro `make ihx`) |
-| `make ihx` | zkompiluje do Intel HEX formátu |
-| `make elf` | zkompiluje do ELF formátu (s debug informacemi) |
-| `make all` | zkompiluje obojí (ihx i elf) |
-| `make flash` | nahraje program do chipu. Na Linuxu se použije [OpenOCD](https://openocd.org/). Na Windows se použije [STVP](https://www.st.com/en/development-tools/stvp-stm8.html) verze pro příkazový řádek.|
-| `make flash2` | záložní varianta (používá [stm8flash](https://github.com/vdudouyt/stm8flash)). |
-| `make reflash` | smaže vše a znovu nahraje |
-| `make clean` | smaže všechno, co nakompiloval |
-| `make cleanall` | smaže vše včetně SPL knihoven |
-| `make rebuild` | smaže vše a znovu zkompiluje |
-| `make openocd` | pustí `openocd` pro debug |
-| `make gdb` | spustí STM8-gdb |
-| `make gdbgui` | spustí [gdbgui](https://www.gdbgui.com) (pokud je nainstalované) |
-| `make tree` | zobrazí strom projektu |
-| `make spl-renew` | znovu stáhne SPL knihovny |
-| `make switch-sdcc` | přepne na čistý SDCC Makefile |
-| `make switch-sdcc-gas` | přepne na SDCC-gas Makefile |
-| `make switch-sdccrm` | přepne na SDCCRM Makefile |
+| `make spl` | downloads and prepares libraries |
+| `make` | compiles the project (alias for `make ihx`) |
+| `make ihx` | compiles to Intel HEX format |
+| `make elf` | compiles to ELF format (with debug info) |
+| `make all` | compiles both (ihx and elf) |
+| `make flash` | uploads the program to the chip. On Linux it uses [OpenOCD](https://openocd.org/). On Windows it uses [STVP](https://www.st.com/en/development-tools/stvp-stm8.html) command line version.|
+| `make flash2` | alternative method (uses [stm8flash](https://github.com/vdudouyt/stm8flash)). |
+| `make reflash` | cleans everything and uploads again |
+| `make clean` | deletes everything that was compiled |
+| `make cleanall` | deletes everything including SPL libraries |
+| `make rebuild` | cleans everything and recompiles |
+| `make openocd` | runs `openocd` for debugging |
+| `make gdb` | runs STM8-gdb |
+| `make gdbgui` | runs [gdbgui](https://www.gdbgui.com) (if installed) |
+| `make tree` | displays the project tree |
+| `make spl-renew` | re-downloads SPL libraries |
+| `make switch-sdcc` | switches to pure SDCC Makefile |
+| `make switch-sdcc-gas` | switches to SDCC-gas Makefile |
+| `make switch-sdccrm` | switches to SDCCRM Makefile |
 
 
-Závislosti
+Dependencies
 ---------------
 
 * [GNU Make](https://www.gnu.org/software/make/)
-* [GNU Bash](https://www.gnu.org/software/bash/) -- ten se na Windows
-  dá nainstalovat společně s [Git](https://git-scm.com/download/win)em.
+* [GNU Bash](https://www.gnu.org/software/bash/) -- on Windows
+  it can be installed together with [Git](https://git-scm.com/download/win).
 * [SDCC](http://sdcc.sourceforge.net/)
-  nebo [SDCC-gas](https://github.com/XaviDCR92/sdcc-gas)
+  or [SDCC-gas](https://github.com/XaviDCR92/sdcc-gas)
 * [STM8 binutils](https://stm8-binutils-gdb.sourceforge.io) (`stm8-gdb`, `stm8-ld`)
-* [OpenOCD](https://openocd.org/) pro `flash` a `debug`
-  nebo [STVP](https://www.st.com/en/development-tools/stvp-stm8.html)
-  pro `flash` na Windows.
-* ([stm8flash](https://github.com/vdudouyt/stm8flash) pro `flash2`)
+* [OpenOCD](https://openocd.org/) for `flash` and `debug`
+  or [STVP](https://www.st.com/en/development-tools/stvp-stm8.html)
+  for `flash` on Windows.
+* ([stm8flash](https://github.com/vdudouyt/stm8flash) for `flash2`)
 
-### Na Windows
+### On Windows
 
 [`choco`](https://chocolatey.org/)` install git make vscode mingw`
-
