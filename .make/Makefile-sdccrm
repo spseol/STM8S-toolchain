@@ -14,7 +14,7 @@ MAKEFLAGS += --load-average=$(shell nproc)
 #DEVICE_FLASH=stm8s105c6
 DEVICE_FLASH=stm8s208rb
 
-### STlink version for falsh2 targer (stm8flash program)
+### STlink version for flash2 target (stm8flash program)
 #STLINK=stlink
 #STLINK=stlinkv2
 STLINK=stlinkv21
@@ -78,8 +78,8 @@ SKIP_TRAPS = 1
 # set compiler path & parameters 
 #CFLAGS  = -mstm8 -lstm8 --opt-code-size 
 CFLAGS  = -mstm8 -lstm8 --opt-code-size --nogcse --all-callee-saves --stack-auto --fverbose-asm --float-reent --no-peep
-#CFFLAGS += --std-sdcc99 
-CFFLAGS += --std-sdcc2x
+#CFLAGS += --std-sdcc99
+CFLAGS += --std-sdcc2x
 #CFLAGS += --disable-warning 283
 CFLAGS += -I inc
 CFLAGS += -D F_CPU=$(F_CPU)

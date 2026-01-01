@@ -14,7 +14,7 @@ MAKEFLAGS += --load-average=$(shell nproc)
 #DEVICE_FLASH=stm8s105c6
 DEVICE_FLASH=stm8s208rb
 
-### STlink version for falsh2 targer (stm8flash program)
+### STlink version for flash2 target (stm8flash program)
 #STLINK=stlink
 #STLINK=stlinkv2
 STLINK=stlinkv21
@@ -271,7 +271,7 @@ reflash: clean
 openocd:
 	+$(OPENOCD) -c "init" -c "reset halt"
 
-debug: $(TARGET_ELF)
+gdb: $(TARGET_ELF)
 	+stm8-gdb --tui $^
 
 gdbgui: $(TARGET_ELF)
